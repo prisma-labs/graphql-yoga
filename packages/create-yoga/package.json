@@ -1,0 +1,50 @@
+{
+  "name": "create-yoga-app",
+  "description": "A starter kit Project for creating simple GraphQL Yoga Projects",
+  "version": "1.0.0",
+  "exports": "./index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "ncc build ./index.ts -o bin",
+    "test": "npm run build && yarn link create-yoga-app && yarn create yoga-app ./example -t aws-lambda-bundle",
+    "prerelease": "rimraf ./dist/",
+    "release": "ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
+    "publish": "echo Hi"
+  },
+  "repository": {
+    "url": "https://github.com/dotansimha/graphql-yoga",
+    "type": "git"
+  },
+  "bin": {
+    "create-yoga-app": "bin/index.js"
+  },
+  "keywords": [
+    "yoga",
+    "starter-kit",
+    "graphql",
+    "graphql-yoga",
+    "template"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  },
+  "devDependencies": {
+    "@types/async-retry": "^1.4.4",
+    "@types/node": "^18.0.3",
+    "@types/prompts": "^2.0.14",
+    "@types/tar": "^6.1.1",
+    "@types/validate-npm-package-name": "^4.0.0",
+    "async-retry": "^1.3.3",
+    "chalk": "4.1.2",
+    "commander": "^9.3.0",
+    "execa": "^6.1.0",
+    "got": "^12.1.0",
+    "prompts": "^2.4.2",
+    "tar": "^6.1.11",
+    "typescript": "^4.7.4",
+    "validate-npm-package-name": "^4.0.0"
+  }
+}
