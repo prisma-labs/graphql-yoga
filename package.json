@@ -39,7 +39,7 @@
     "postchangeset": "pnpm install --no-frozen-lockfile",
     "postinstall": "husky install",
     "prebuild": "rimraf packages/*/dist",
-    "prettier": "prettier --ignore-path .prettierignore --write --list-different .",
+    "prettier": "prettier --ignore-path .prettierignore --write --list-different --cache .",
     "prettier:check": "prettier --ignore-path .prettierignore --check .",
     "release": "pnpm build && changeset publish",
     "start:docs": "pnpm --filter=website dev",

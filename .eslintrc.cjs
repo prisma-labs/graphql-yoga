@@ -10,9 +10,10 @@ module.exports = {
       },
     },
     {
-      files: ['**/_meta.{ts,js,tsx}'],
+      files: ['website/**/*.{ts,js,tsx}'],
       rules: {
         'import/no-default-export': 'off',
+        'import/extensions': 'off',
       },
     },
     {

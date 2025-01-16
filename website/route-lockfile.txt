@@ -1,5 +1,29 @@
 
-/changelog
+/changelog -> /changelogs/graphql-yoga
+/changelogs/client/apollo-link
+/changelogs/client/urql-exchange
+/changelogs/event-target/redis-event-target
+/changelogs/event-target/typed-event-target
+/changelogs/graphiql
+/changelogs/graphql-yoga
+/changelogs/logger
+/changelogs/nestjs
+/changelogs/nestjs-federation
+/changelogs/plugins/apollo-inline-trace
+/changelogs/plugins/apollo-managed-federation
+/changelogs/plugins/apollo-usage-report
+/changelogs/plugins/apq
+/changelogs/plugins/csrf-prevention
+/changelogs/plugins/defer-stream
+/changelogs/plugins/disable-introspection
+/changelogs/plugins/graphql-sse
+/changelogs/plugins/jwt
+/changelogs/plugins/persisted-operations
+/changelogs/plugins/prometheus
+/changelogs/plugins/response-cache
+/changelogs/plugins/sofa
+/changelogs/render-graphiql
+/changelogs/subscription
 /docs
 /docs/comparison
 /docs/features -> /docs
@@ -13,6 +37,7 @@
 /docs/features/envelop-plugins
 /docs/features/error-masking
 /docs/features/execution-cancellation
+/docs/features/explicit-resource-management
 /docs/features/file-uploads
 /docs/features/graphiql
 /docs/features/health-check
