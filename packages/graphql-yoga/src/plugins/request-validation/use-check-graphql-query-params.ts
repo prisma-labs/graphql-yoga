@@ -15,6 +15,7 @@ export function assertInvalidParams(
           spec: true,
           status: 400,
         },
+        code: 'BAD_REQUEST',
       },
     });
   }
@@ -31,6 +32,7 @@ export function assertInvalidParams(
           http: {
             status: 400,
           },
+          code: 'BAD_REQUEST',
         },
       });
     }
@@ -52,6 +54,7 @@ export function checkGraphQLQueryParams(
               Allow: 'GET, POST',
             },
           },
+          code: 'BAD_REQUEST',
         },
       },
     );
@@ -69,6 +72,7 @@ export function checkGraphQLQueryParams(
             Allow: 'GET, POST',
           },
         },
+        code: 'BAD_REQUEST',
       },
     });
   }
@@ -83,6 +87,7 @@ export function checkGraphQLQueryParams(
             Allow: 'GET, POST',
           },
         },
+        code: 'BAD_REQUEST',
       },
     });
   }
@@ -99,6 +104,7 @@ export function checkGraphQLQueryParams(
               Allow: 'GET, POST',
             },
           },
+          code: 'BAD_REQUEST',
         },
       },
     );
@@ -116,6 +122,7 @@ export function checkGraphQLQueryParams(
               Allow: 'GET, POST',
             },
           },
+          code: 'BAD_REQUEST',
         },
       },
     );

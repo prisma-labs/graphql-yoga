@@ -21,6 +21,7 @@ export async function parsePOSTJsonRequest(request: Request): Promise<GraphQLPar
         spec: true,
         status: 400,
       },
+      code: 'BAD_REQUEST',
     };
     if (err instanceof Error) {
       extensions['originalError'] = {
@@ -39,6 +40,7 @@ export async function parsePOSTJsonRequest(request: Request): Promise<GraphQLPar
         http: {
           status: 400,
         },
+        code: 'BAD_REQUEST',
       },
     });
   }
@@ -52,6 +54,7 @@ export async function parsePOSTJsonRequest(request: Request): Promise<GraphQLPar
           http: {
             status: 400,
           },
+          code: 'BAD_REQUEST',
         },
       },
     );

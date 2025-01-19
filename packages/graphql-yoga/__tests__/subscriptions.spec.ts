@@ -283,7 +283,7 @@ event: next
 data: {"data":{"hi":"hi"}}
 
 event: next
-data: {"errors":[{"message":"Unexpected error.","locations":[{"line":2,"column":11}]}]}
+data: {"errors":[{"message":"Unexpected error.","locations":[{"line":2,"column":11}],"extensions":{"code":"INTERNAL_SERVER_ERROR"}}]}
 
 event: complete
 data:

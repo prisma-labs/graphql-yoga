@@ -76,7 +76,7 @@ describe('logging', () => {
       });
 
       expect(await response.text()).toMatchInlineSnapshot(
-        `"{"errors":[{"message":"Unexpected error.","locations":[{"line":1,"column":2}],"path":["hi"]}],"data":{"hi":null}}"`,
+        `"{"errors":[{"message":"Unexpected error.","locations":[{"line":1,"column":2}],"path":["hi"],"extensions":{"code":"INTERNAL_SERVER_ERROR"}}],"data":{"hi":null}}"`,
       );
 
       expect(logger.error).toHaveBeenCalledTimes(1);

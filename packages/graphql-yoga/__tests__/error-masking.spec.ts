@@ -744,6 +744,9 @@ describe('error masking', () => {
             },
           ],
           message: 'Unexpected error.',
+          extensions: {
+            code: 'INTERNAL_SERVER_ERROR',
+          },
           path: ['root'],
         },
       ],

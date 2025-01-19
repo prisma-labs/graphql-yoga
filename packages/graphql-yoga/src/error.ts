@@ -88,6 +88,7 @@ export function handleError(
     errors.add(
       createGraphQLError(error, {
         extensions: {
+          code: 'INTERNAL_SERVER_ERROR',
           unexpected: true,
         },
       }),
@@ -96,6 +97,7 @@ export function handleError(
     errors.add(
       createGraphQLError(error.toString(), {
         extensions: {
+          code: 'INTERNAL_SERVER_ERROR',
           unexpected: true,
         },
       }),

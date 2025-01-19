@@ -13,6 +13,7 @@ export function useLimitBatching(limit?: number): Plugin {
                   http: {
                     status: 400,
                   },
+                  code: 'BAD_REQUEST',
                 },
               });
             }
@@ -22,6 +23,7 @@ export function useLimitBatching(limit?: number): Plugin {
                   http: {
                     status: 413,
                   },
+                  code: 'BAD_REQUEST',
                 },
               });
             }

@@ -14,10 +14,10 @@ export const maskError: MaskError = (
         return error;
       }
       // Original error should be removed
-      const extensions: GraphQLErrorExtensions = {
-        ...error.extensions,
-        unexpected: true,
-      };
+      // @ts-expect-error - we are modifying the error
+      const extensions: GraphQLErrorExtensions = (error.extensions ||= {});
+      extensions['code'] ||= 'INTERNAL_SERVER_ERROR';
+      extensions.unexpected = true;
       if (isDev) {
         extensions['originalError'] = {
           message: error.originalError.message,
@@ -37,6 +37,7 @@ export const maskError: MaskError = (
 
   return createGraphQLError(message, {
     extensions: {
+      code: 'INTERNAL_SERVER_ERROR',
       unexpected: true,
       originalError: isDev
         ? error instanceof Error

@@ -100,6 +100,9 @@ describe('Batching', () => {
       errors: [
         {
           message: 'Batching is limited to 10 operations per request.',
+          extensions: {
+            code: 'BAD_REQUEST',
+          },
         },
       ],
     });
@@ -132,6 +135,9 @@ describe('Batching', () => {
       errors: [
         {
           message: 'Batching is not supported.',
+          extensions: {
+            code: 'BAD_REQUEST',
+          },
         },
       ],
     });
@@ -169,6 +175,9 @@ describe('Batching', () => {
       errors: [
         {
           message: 'Batching is limited to 2 operations per request.',
+          extensions: {
+            code: 'BAD_REQUEST',
+          },
         },
       ],
     });
@@ -202,6 +211,9 @@ describe('Batching', () => {
       errors: [
         {
           message: 'Batching is not supported.',
+          extensions: {
+            code: 'BAD_REQUEST',
+          },
         },
       ],
     });
@@ -237,6 +249,9 @@ describe('Batching', () => {
       errors: [
         {
           message: 'Batching is not supported.',
+          extensions: {
+            code: 'BAD_REQUEST',
+          },
         },
       ],
     });
@@ -283,6 +298,9 @@ describe('Batching', () => {
       errors: [
         {
           message: 'Batching is limited to 10 operations per request.',
+          extensions: {
+            code: 'BAD_REQUEST',
+          },
         },
       ],
     });
