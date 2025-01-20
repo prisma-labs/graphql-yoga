@@ -1,12 +1,13 @@
 import { DocumentNode, getOperationAST, Kind, printSchema, stripIgnoredCharacters } from 'graphql';
 import {
   isAsyncIterable,
-  Maybe,
-  Plugin,
-  YogaInitialContext,
   YogaLogger,
   YogaServer,
   type FetchAPI,
+  type Maybe,
+  type Plugin,
+  type PromiseOrValue,
+  type YogaInitialContext,
 } from 'graphql-yoga';
 import { Report } from '@apollo/usage-reporting-protobuf';
 import {
@@ -79,6 +80,7 @@ export function useApolloUsageReport(options: ApolloUsageReportOptions = {}): Pl
     WeakMap<Request, ApolloUsageReportRequestContext>,
   ];
 
+  let schemaIdSet$: Promise<void> | undefined;
   let schemaId: string;
   let yoga: YogaServer<Record<string, unknown>, Record<string, unknown>>;
   const logger = Object.fromEntries(
@@ -120,10 +122,15 @@ export function useApolloUsageReport(options: ApolloUsageReportOptions = {}): Pl
         },
         onSchemaChange({ schema }) {
           if (schema) {
-            hashSHA256(printSchema(schema)).then(id => {
+            schemaIdSet$ = hashSHA256(printSchema(schema), yoga.fetchAPI).then(id => {
               schemaId = id;
+              schemaIdSet$ = undefined;
             });
           }
+        },
+
+        onRequestParse(): PromiseOrValue<void> {
+          return schemaIdSet$;
         },
 
         onParse() {
@@ -167,7 +174,8 @@ export function useApolloUsageReport(options: ApolloUsageReportOptions = {}): Pl
 
           for (const trace of reqCtx.traces.values()) {
             if (!trace.schemaId || !trace.operationKey) {
-              throw new TypeError('Misformed trace, missing operation key or schema id');
+              logger.debug('Misformed trace, missing operation key or schema id');
+              continue;
             }
 
             const clientName = clientNameFactory(request);

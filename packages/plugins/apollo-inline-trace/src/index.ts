@@ -2,6 +2,7 @@ import { GraphQLError, ResponsePath } from 'graphql';
 import {
   createGraphQLError,
   isAsyncIterable,
+  mapMaybePromise,
   Plugin,
   YogaInitialContext,
   YogaLogger,
@@ -168,18 +169,12 @@ export function useApolloInstrumentation(options: ApolloInlineTracePluginOptions
     },
     onRequest({ request }): void | Promise<void> {
       if (options.ignoreRequest) {
-        const res$ = options.ignoreRequest(request);
-        if (typeof res$ === 'boolean') {
-          if (res$) {
-            return;
+        // @ts-expect-error - Types are not aligned
+        return mapMaybePromise(options.ignoreRequest(request), shouldIgnore => {
+          if (!shouldIgnore) {
+            setNewContext(request);
           }
-        } else {
-          return res$.then(shouldIgnore => {
-            if (!shouldIgnore) {
-              setNewContext(request);
-            }
-          });
-        }
+        });
       }
       setNewContext(request);
     },
@@ -227,7 +222,9 @@ export function useApolloInstrumentation(options: ApolloInlineTracePluginOptions
       const reqCtx = ctxForReq.get(request);
       if (!reqCtx) return;
       // onResultProcess will be called only once since we disallow async iterables
-      if (reqCtx.stopped) throw new Error('Trace stopped multiple times');
+      if (reqCtx.stopped) {
+        logger.debug('Trace stopped multiple times');
+      }
 
       reqCtx.stopped = true;
     },
