@@ -15,7 +15,7 @@ for (const audit of serverAudits({
   url: 'http://yoga/graphql',
   fetchFn: yoga.fetch,
 })) {
-  test(audit.name, async () => {
+  test(`[${audit.id}] ${audit.name}`, async () => {
     const result = await audit.fn();
     if (result.status !== 'ok') {
       throw result.reason;

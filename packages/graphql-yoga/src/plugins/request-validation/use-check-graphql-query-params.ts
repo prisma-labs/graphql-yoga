@@ -1,4 +1,5 @@
-import { createGraphQLError } from '@graphql-tools/utils';
+import { Kind, type DocumentNode } from 'graphql';
+import { createGraphQLError, isDocumentNode } from '@graphql-tools/utils';
 import type { GraphQLParams } from '../../types.js';
 import type { Plugin } from '../types.js';
 
@@ -18,6 +19,21 @@ export function assertInvalidParams(
       },
     });
   }
+
+  if (
+    'operationName' in params &&
+    typeof params.operationName !== 'string' &&
+    params.operationName != null
+  ) {
+    throw createGraphQLError(`Invalid operation name in the request body.`, {
+      extensions: {
+        http: {
+          status: 400,
+        },
+      },
+    });
+  }
+
   for (const paramKey in params) {
     if ((params as Record<string, unknown>)[paramKey] == null) {
       continue;
@@ -133,10 +149,77 @@ export function isValidGraphQLParams(params: unknown): params is GraphQLParams {
   }
 }
 
+export function checkOperationName(
+  operationName: string | undefined,
+  document: DocumentNode,
+): void {
+  const operations = listOperations(document);
+
+  if (operationName != null) {
+    for (const operation of operations) {
+      if (operation.name?.value === operationName) {
+        return;
+      }
+    }
+
+    throw createGraphQLError(
+      `Could not determine what operation to execute. There is no operation "${operationName}" in the query.`,
+      {
+        extensions: {
+          http: {
+            spec: true,
+            status: 400,
+          },
+        },
+      },
+    );
+  }
+
+  operations.next();
+  // If there is no operation name, we should have only one operation
+  if (!operations.next().done) {
+    throw createGraphQLError(
+      `Could not determine what operation to execute. The query contains multiple operation, an operation name should be provided.`,
+      {
+        extensions: {
+          http: {
+            spec: true,
+            status: 400,
+          },
+        },
+      },
+    );
+  }
+}
+
+export function isValidOperationName(
+  operationName: string | undefined,
+  document: DocumentNode,
+): boolean {
+  try {
+    checkOperationName(operationName, document);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function useCheckGraphQLQueryParams(extraParamNames?: string[]): Plugin {
   return {
     onParams({ params }) {
       checkGraphQLQueryParams(params, extraParamNames);
+    },
+    onParse() {
+      return ({ result, context }) => {
+        // Run only if this is a Yoga request
+        // the `request` might be missing when using graphql-ws for example
+        // in which case throwing an error would abruptly close the socket
+        if (!context.request || !context.params || !isDocumentNode(result)) {
+          return;
+        }
+
+        checkOperationName(context.params.operationName, result);
+      };
     },
   };
 }
@@ -165,4 +248,12 @@ function extendedTypeof(
 
 function isObject(val: unknown): val is Record<PropertyKey, unknown> {
   return extendedTypeof(val) === 'object';
+}
+
+function* listOperations(document: DocumentNode) {
+  for (const definition of document.definitions) {
+    if (definition.kind === Kind.OPERATION_DEFINITION) {
+      yield definition;
+    }
+  }
 }

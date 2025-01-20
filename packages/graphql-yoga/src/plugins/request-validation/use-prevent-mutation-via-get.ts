@@ -13,17 +13,7 @@ export function assertMutationViaGet(
     ? (getOperationAST(document, operationName) ?? undefined)
     : undefined;
 
-  if (!operation) {
-    throw createGraphQLError('Could not determine what operation to execute.', {
-      extensions: {
-        http: {
-          status: 400,
-        },
-      },
-    });
-  }
-
-  if (operation.operation === 'mutation' && method === 'GET') {
+  if (operation?.operation === 'mutation' && method === 'GET') {
     throw createGraphQLError('Can only perform a mutation operation from a POST request.', {
       extensions: {
         http: {
