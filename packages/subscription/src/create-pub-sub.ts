@@ -1,5 +1,5 @@
 import type { TypedEventTarget } from '@graphql-yoga/typed-event-target';
-import { Repeater } from '@repeaterjs/repeater';
+import { Repeater, type RepeaterBuffer } from '@repeaterjs/repeater';
 import { CustomEvent } from '@whatwg-node/events';
 
 type PubSubPublishArgsByKey = {
@@ -38,16 +38,42 @@ export type PubSub<TPubSubPublishArgsByKey extends PubSubPublishArgsByKey> = {
    * Publish a value for a given topic.
    */
   publish<TKey extends Extract<keyof TPubSubPublishArgsByKey, string>>(
-    routingKey: TKey,
-    ...args: TPubSubPublishArgsByKey[TKey]
+    ...args:
+      | [
+          args: {
+            topic: TKey;
+          } & (TPubSubPublishArgsByKey[TKey][1] extends undefined
+            ? {
+                id?: void;
+                payload: TPubSubPublishArgsByKey[TKey][0];
+              }
+            : {
+                id: TPubSubPublishArgsByKey[TKey][0];
+                payload: TPubSubPublishArgsByKey[TKey][1];
+              }),
+        ]
+      | [routingKey: TKey, ...args: TPubSubPublishArgsByKey[TKey]]
   ): void;
   /**
    * Subscribe to a topic.
    */
   subscribe<TKey extends Extract<keyof TPubSubPublishArgsByKey, string>>(
-    ...[routingKey, id]: TPubSubPublishArgsByKey[TKey][1] extends undefined
-      ? [TKey]
-      : [TKey, TPubSubPublishArgsByKey[TKey][0]]
+    ...args:
+      | (TPubSubPublishArgsByKey[TKey][1] extends undefined
+          ? [key: TKey]
+          : [key: TKey, id: TPubSubPublishArgsByKey[TKey][0]])
+      | [
+          args: {
+            topic: string;
+            buffer?: RepeaterBuffer | undefined;
+          } & (TPubSubPublishArgsByKey[TKey][1] extends undefined
+            ? {
+                id?: void;
+              }
+            : {
+                id: TPubSubPublishArgsByKey[TKey][0];
+              }),
+        ]
   ): Repeater<
     TPubSubPublishArgsByKey[TKey][1] extends undefined
       ? MapToNull<TPubSubPublishArgsByKey[TKey][0]>
@@ -64,41 +90,86 @@ export const createPubSub = <TPubSubPublishArgsByKey extends PubSubPublishArgsBy
   const target =
     config?.eventTarget ?? (new EventTarget() as PubSubEventTarget<TPubSubPublishArgsByKey>);
 
+  function subscribe<TKey extends Extract<keyof TPubSubPublishArgsByKey, string>>(
+    ...args:
+      | (TPubSubPublishArgsByKey[TKey][1] extends undefined
+          ? [key: TKey]
+          : [key: TKey, id: TPubSubPublishArgsByKey[TKey][0]])
+      | [
+          args: {
+            topic: string;
+            buffer?: RepeaterBuffer | undefined;
+          } & (TPubSubPublishArgsByKey[TKey][1] extends undefined
+            ? {
+                id?: void;
+              }
+            : {
+                id: TPubSubPublishArgsByKey[TKey][0];
+              }),
+        ]
+  ): Repeater<
+    TPubSubPublishArgsByKey[TKey][1] extends undefined
+      ? TPubSubPublishArgsByKey[TKey][0]
+      : TPubSubPublishArgsByKey[TKey][1]
+  > {
+    let topic: string;
+    let buffer: RepeaterBuffer | undefined;
+    if (typeof args[0] === 'string') {
+      topic = args[1] === undefined ? args[0] : `${args[0]}:${args[1]}`;
+    } else {
+      topic = args[0].id === undefined ? args[0].topic : `${args[0].topic}:${args[0].id}`;
+      buffer = args[0].buffer;
+    }
+
+    return new Repeater(function subscriptionRepeater(next, stop) {
+      stop.then(function subscriptionRepeaterStopHandler() {
+        target.removeEventListener(topic, pubsubEventListener);
+      });
+
+      target.addEventListener(topic, pubsubEventListener);
+
+      function pubsubEventListener(event: PubSubEvent<TPubSubPublishArgsByKey, TKey>) {
+        next(event.detail);
+      }
+    }, buffer);
+  }
+
+  function publish<TKey extends Extract<keyof TPubSubPublishArgsByKey, string>>(
+    ...args:
+      | [
+          args: {
+            topic: TKey;
+          } & (TPubSubPublishArgsByKey[TKey][1] extends undefined
+            ? {
+                id?: void;
+                payload: TPubSubPublishArgsByKey[TKey][0];
+              }
+            : {
+                id: TPubSubPublishArgsByKey[TKey][0];
+                payload: TPubSubPublishArgsByKey[TKey][1];
+              }),
+        ]
+      | [routingKey: TKey, ...args: TPubSubPublishArgsByKey[TKey]]
+  ): void {
+    let payload: unknown;
+    let topic: string;
+    if (typeof args[0] === 'string') {
+      payload = args[2] ?? args[1] ?? null;
+      topic = args[2] === undefined ? args[0] : `${args[0]}:${args[1]}`;
+    } else {
+      const arg = args[0];
+      payload = arg.payload;
+      topic = arg.id === undefined ? arg.topic : `${arg.topic}:${arg.id}`;
+    }
+
+    const event: PubSubEvent<TPubSubPublishArgsByKey, TKey> = new CustomEvent(topic, {
+      detail: payload,
+    });
+    target.dispatchEvent(event);
+  }
+
   return {
-    publish<TKey extends Extract<keyof TPubSubPublishArgsByKey, string>>(
-      routingKey: TKey,
-      ...args: TPubSubPublishArgsByKey[TKey]
-    ) {
-      const payload = args[1] ?? args[0] ?? null;
-      const topic = args[1] === undefined ? routingKey : `${routingKey}:${args[0] as number}`;
-
-      const event: PubSubEvent<TPubSubPublishArgsByKey, TKey> = new CustomEvent(topic, {
-        detail: payload,
-      });
-      target.dispatchEvent(event);
-    },
-    subscribe<TKey extends Extract<keyof TPubSubPublishArgsByKey, string>>(
-      ...[routingKey, id]: TPubSubPublishArgsByKey[TKey][1] extends undefined
-        ? [TKey]
-        : [TKey, TPubSubPublishArgsByKey[TKey][0]]
-    ): Repeater<
-      TPubSubPublishArgsByKey[TKey][1] extends undefined
-        ? TPubSubPublishArgsByKey[TKey][0]
-        : TPubSubPublishArgsByKey[TKey][1]
-    > {
-      const topic = id === undefined ? routingKey : `${routingKey}:${id as number}`;
-
-      return new Repeater(function subscriptionRepeater(next, stop) {
-        stop.then(function subscriptionRepeaterStopHandler() {
-          target.removeEventListener(topic, pubsubEventListener);
-        });
-
-        target.addEventListener(topic, pubsubEventListener);
-
-        function pubsubEventListener(event: PubSubEvent<TPubSubPublishArgsByKey, TKey>) {
-          next(event.detail);
-        }
-      });
-    },
+    publish,
+    subscribe,
   };
 };

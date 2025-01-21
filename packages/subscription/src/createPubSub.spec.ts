@@ -149,5 +149,49 @@ describe('createPubSub', () => {
       const result = await allValues;
       expect(result).toEqual([null, null, null]);
     });
+    it('subscribe to object based API', async () => {
+      const pubSub = createPubSub<{
+        a: [number];
+      }>({
+        eventTarget: createEventTarget(),
+      });
+
+      const sub = pubSub.subscribe({
+        topic: 'a',
+      });
+      const allValues = collectAsyncIterableValues(sub);
+      pubSub.publish('a', 1);
+      pubSub.publish('a', 2);
+      pubSub.publish('a', 3);
+
+      setImmediate(() => {
+        sub.return();
+      });
+
+      const result = await allValues;
+      expect(result).toEqual([1, 2, 3]);
+    });
+    it('subscribe to fine-grained topic with object based API', async () => {
+      const pubSub = createPubSub<{
+        a: [id: string, payload: number];
+      }>({
+        eventTarget: createEventTarget(),
+      });
+      const id1 = '1';
+      const sub1 = pubSub.subscribe({
+        topic: 'a',
+        id: id1,
+      });
+      const allValues1 = collectAsyncIterableValues(sub1);
+      pubSub.publish('a', id1, 1);
+      pubSub.publish('a', id1, 2);
+      pubSub.publish('a', id1, 3);
+      setImmediate(() => {
+        sub1.return();
+      });
+
+      const result1 = await allValues1;
+      expect(result1).toEqual([1, 2, 3]);
+    });
   });
 });

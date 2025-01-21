@@ -314,14 +314,14 @@ const yoga = createYoga({
       Subscription: {
         randomNumber: {
           // subscribe to the randomNumber event
-          subscribe: () => pubSub.subscribe('randomNumber'),
+          subscribe: () => pubSub.subscribe({ topic: 'randomNumber' }),
           resolve: payload => payload
         }
       },
       Mutation: {
         broadcastRandomNumber: (_, args) => {
           // publish a random number
-          pubSub.publish('randomNumber', Math.random())
+          pubSub.publish({ topic: 'randomNumber', payload: Math.random() })
         }
       }
     }
@@ -344,16 +344,18 @@ const pubSub = createPubSub<{
   randomNumber: [randomNumber: number]
 }>()
 
-pubsub.subscribe('randomNumber')
+pubsub.subscribe({
+  topic: 'randomNumber'
+})
 
 // This is now type-safe.
-pubSub.publish('randomNumber', 1)
+pubSub.publish({ topic: 'randomNumber', payload: 1 })
 
 // This causes a TypeScript error.
-pubSub.publish('randomNumber')
+pubSub.publish({ topic: 'randomNumber' })
 
 // This causes a TypeScript error.
-pubSub.publish('event does not exist')
+pubSub.publish({ topic: 'event does not exist' })
 ```
 
 You can subscribe to a specific topic using `pubSub.subscribe`.
@@ -365,7 +367,9 @@ const pubSub = createPubSub<{
 
 // Usage outside a GraphQL subscribe function
 async function subscribe() {
-  const eventSource = pubSub.subscribe('randomNumber')
+  const eventSource = pubSub.subscribe({
+    topic: 'randomNumber'
+  })
 
   for await (const value of eventSource) {
     console.log(value)
@@ -376,7 +380,7 @@ async function subscribe() {
 
 subscribe()
 
-pubSub.publish('randomNumber', 3)
+pubSub.publish({ topic: 'randomNumber', payload: 3 })
 ```
 
 You can publish a value using `pubSub.publish`.
@@ -386,7 +390,7 @@ const pubSub = createPubSub<{
   randomNumber: [randomNumber: number]
 }>()
 
-pubSub.publish('randomNumber', 3)
+pubSub.publish({ topic: 'randomNumber', payload: 3 })
 ```
 
 #### Topic Configuration Variants
@@ -403,9 +407,9 @@ const pubSub = createPubSub<{
   'event:payload:obj': [payload: { foo: number }]
 }>()
 
-pubSub.publish('event:without:payload')
-pubSub.publish('event:payload:number', 12)
-pubSub.publish('event:payload:obj', { foo: 1 })
+pubSub.publish({ topic: 'event:without:payload' })
+pubSub.publish({ topic: 'event:payload:number', payload: 12 })
+pubSub.publish({ topic: 'event:payload:obj', payload: { foo: 1 } })
 ```
 
 #### Topic with Dynamic ID
@@ -422,11 +426,11 @@ const userId1 = '420'
 const userId2 = '69'
 
 // the userId argument is enforced by the TypeScript compiler.
-pubSub.subscribe('user:followerCount', userId1)
-pubSub.subscribe('user:followerCount', userId2)
+pubSub.subscribe({ topic: 'user:followerCount', id: userId1 })
+pubSub.subscribe({ topic: 'user:followerCount', id: userId2 })
 
-pubSub.publish('user:followerCount', userId1, { followerCount: 30 })
-pubSub.publish('user:followerCount', userId2, { followerCount: 12 })
+pubSub.publish({ topic: 'user:followerCount', id: userId1, payload: { followerCount: 30 } })
+pubSub.publish({ topic: 'user:followerCount', id: userId2, payload: { followerCount: 12 } })
 ```
 
 ### Distributed Pub/Sub for Production
@@ -523,7 +527,7 @@ const pubSub = createPubSub<{
 }>()
 
 const source = pipe(
-  pubSub.subscribe('randomNumber'),
+  pubSub.subscribe({ topic: 'randomNumber' }),
   map(publishedNumber => publishedNumber * 2),
   filter(multipliedNumber => multipliedNumber < 10)
 )
@@ -534,10 +538,10 @@ const source = pipe(
   }
 })()
 
-pubSub.publish('randomNumber', 1) // logs 2
-pubSub.publish('randomNumber', 2) // logs 4
-pubSub.publish('randomNumber', 5) // filtered out
-pubSub.publish('randomNumber', 3) // logs 6
+pubSub.publish({ topic: 'randomNumber', payload: 1 }) // logs 2
+pubSub.publish({ topic: 'randomNumber', payload: 2 }) // logs 4
+pubSub.publish({ topic: 'randomNumber', payload: 5 }) // filtered out
+pubSub.publish({ topic: 'randomNumber', payload: 3 }) // logs 6
 source.return()
 ```
 
@@ -571,7 +575,7 @@ const yoga = createYoga({
           // subscribe to the randomNumber event
           subscribe: (_, args) =>
             pipe(
-              pubSub.subscribe('randomNumber'),
+              pubSub.subscribe({ topic: 'randomNumber' }),
               map(publishedNumber => publishedNumber * args.multiplyBy),
               filter(multipliedNumber => multipliedNumber < args.lessThan)
             ),
@@ -581,7 +585,7 @@ const yoga = createYoga({
       Mutation: {
         broadcastRandomNumber: (_, args) => {
           // publish a random number
-          pubSub.publish('randomNumber', Math.random())
+          pubSub.publish({ topic: 'randomNumber', payload: Math.random() })
         }
       }
     }
@@ -648,7 +652,7 @@ const yoga = createYoga({
                 // upon initiating the subscription
                 undefined,
                 // event stream for future updates
-                pubSub.subscribe('globalCounter:change')
+                pubSub.subscribe({ topic: 'globalCounter:change' })
               ]),
               // map all stream values to the latest globalCounter
               map(() => globalCounter)
@@ -660,7 +664,7 @@ const yoga = createYoga({
         incrementGlobalCounter: () => {
           globalCounter = globalCounter + 1
           // publish a global counter increment event
-          pubSub.publish('globalCounter:change')
+          pubSub.publish({ topic: 'globalCounter:change' })
           return globalCounter
         }
       }
@@ -728,8 +732,8 @@ const yoga = createYoga({
           subscribe: () =>
             pipe(
               Repeater.merge([
-                pubSub.subscribe('userLoginChanged'),
-                pubSub.subscribe('userDeleted')
+                pubSub.subscribe({ topic: 'userLoginChanged' }),
+                pubSub.subscribe({ topic: 'userDeleted' })
               ]),
               // map all stream values to the latest user
               map(() => user)
@@ -740,7 +744,7 @@ const yoga = createYoga({
       Mutation: {
         deleteUser() {
           user = null
-          pubSub.publish('userDeleted')
+          pubSub.publish({ topic: 'userDeleted' })
           return true
         },
         updateUserLogin(_, args) {
@@ -748,7 +752,7 @@ const yoga = createYoga({
             return false
           }
           user.login = args.newLogin
-          pubSub.publish('userLoginChanged')
+          pubSub.publish({ topic: 'userLoginChanged' })
           return true
         }
       }
