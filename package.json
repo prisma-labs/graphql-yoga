@@ -105,7 +105,8 @@
     },
     "overrides": {
       "graphql": "16.10.0",
-      "@envelop/core": "5.1.0-alpha-20250218184439-60549a8c807f873679d6aed228e4810334344231",
+      "@envelop/core": "5.1.0-alpha-20250221160025-4035aee544c5d6343c568fa53cc56398e047b852",
+      "@envelop/types": "5.1.0-alpha-20250221160025-4035aee544c5d6343c568fa53cc56398e047b852",
       "@whatwg-node/server": "0.10.0-alpha-20250218194158-de7e6d1454b125b67766395ce9bc8509d8900f93",
       "@changesets/assemble-release-plan": "5.2.3",
       "@types/react": "19.0.10"
