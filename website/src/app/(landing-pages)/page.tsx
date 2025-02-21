@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { ReactNode } from 'react';
 import Image from 'next/image';
-import NextLink from 'next/link';
 import {
   CallToAction,
   cn,
-  ExploreMainProductCards,
   // FrequentlyAskedQuestions,
   GitHubIcon,
   Heading,
@@ -18,17 +16,14 @@ import {
   YogaIcon,
 } from '@theguild/components';
 import { metadata as rootMetadata } from '../layout';
+import { PracticeYogaSection } from './practice-yoga-section';
 // import FAQ from './faq.mdx';
 import { ReachZenQuickerWithYoga } from './reach-zen-quicker-with-yoga';
 import { ListItemAnchor, RunAnywhereSection } from './runs-anywhere';
 import { TrulyExtendableSection } from './truly-extendable';
-import arrowUpBade from './icons/arrow-up-badge.svg';
-import checkBadge from './icons/check-badge.svg';
-import errorWarningBadge from './icons/error-warning-badge.svg';
-import graphqlBadge from './icons/graphql-badge.svg';
-import pulseLineBadge from './icons/pulse-line-badge.svg';
-import puzzleBadge from './icons/puzzle-badge.svg';
-import manInBlackClothingPracticingYoga from './man-in-black-clothing-practicing-yoga-minimalistic.png';
+import arrowUpIcon from './icons/arrow-up-icon.svg';
+import checkIcon from './icons/check-icon.svg';
+import puzzleIcon from './icons/puzzle-icon.svg';
 
 export const metadata = {
   title: 'GraphQL Yoga',
@@ -48,22 +43,6 @@ function Page(props: { children: ReactNode; className?: string }) {
 }
 
 export default function IndexPage() {
-  const yogaMan = (
-    <>
-      <Image
-        src={manInBlackClothingPracticingYoga}
-        alt="Man in black clothing practicing yoga"
-        className="rounded-3xl h-96 lg:h-full object-cover"
-      />
-      <YogaIcon
-        className="absolute inset-1/2 -translate-x-1/2 -translate-y-1/2 size-2/3"
-        stroke="white"
-        strokeWidth="0.2"
-        fill="none"
-      />
-    </>
-  );
-
   return (
     <Page className="mx-auto max-w-[90rem] overflow-hidden">
       <Hero
@@ -91,10 +70,9 @@ export default function IndexPage() {
         <HeroDecorationFromLogo logo={<YogaIcon />} />
       </Hero>
 
-      <ExploreMainProductCards />
-      <EverythingHTTPSection />
+      <PracticeYogaSection className="mt-24" />
       <TrulyExtendableSection className="mt-24 mx-4 md:mx-6" />
-      <ReachZenQuickerWithYoga />
+      <EverythingHTTPSection />
 
       <RunAnywhereSection className="mx-4 md:mx-6">
         {[
@@ -143,54 +121,7 @@ export default function IndexPage() {
         ))}
       </RunAnywhereSection>
 
-      <section className="flex my-24 max-lg:flex-col gap-6 lg:gap-24 px-4 xl:px-[120px]">
-        <div className="grow">
-          <Heading as="h2" size="md">
-            Practice Yoga while doing server-work
-          </Heading>
-          <p className="text-green-800 mt-4">
-            Yoga ensures optimal configuration out-of-the-box, enhancing performance and developer
-            workflow.
-          </p>
-          <div className="relative lg:hidden mt-6">{yogaMan}</div>
-          <div className="flex my-12 gap-8 max-sm:flex-col">
-            <InfoCard
-              // @ts-expect-error
-              as={NextLink}
-              heading="Error masking"
-              icon={<Image src={errorWarningBadge} alt="" />}
-              className="flex-1 p-0 md:p-0 bg-transparent hive-focus rounded-md"
-              href="/docs/features/error-masking"
-            >
-              Enhance security by masking errors to prevent sensitive data leaks.
-            </InfoCard>
-            <InfoCard
-              // @ts-expect-error
-              as={NextLink}
-              heading="Health checks"
-              icon={<Image src={pulseLineBadge} alt="" />}
-              className="flex-1 p-0 md:p-0 bg-transparent hive-focus rounded-md"
-              href="/docs/features/health-check"
-            >
-              Built-in health checks to ensure server vitality and readiness.
-            </InfoCard>
-            <InfoCard
-              // @ts-expect-error
-              as={NextLink}
-              heading="GraphiQL Integration"
-              icon={<Image src={graphqlBadge} alt="" />}
-              className="flex-1 p-0 md:p-0 bg-transparent hive-focus rounded-md"
-              href="/docs/features/graphiql"
-            >
-              In-browser IDE for seamless writing, validation, and testing of GraphQL operations.
-            </InfoCard>
-          </div>
-          <CallToAction variant="primary" href="/docs">
-            Learn more
-          </CallToAction>
-        </div>
-        <div className="basis-5/12 shrink-0 relative max-lg:hidden">{yogaMan}</div>
-      </section>
+      <ReachZenQuickerWithYoga />
 
       <ToolsAndLibrariesCards />
       {/* TODO: add later */}
@@ -203,7 +134,7 @@ export default function IndexPage() {
 
 function EverythingHTTPSection({ className }: { className?: string }) {
   return (
-    <section className={cn('px-4 py-6 sm:py-12 md:px-6 lg:py-16 xl:px-[120px]', className)}>
+    <section className={cn('px-4 py-6 sm:py-12 md:px-6 lg:py-16 xl:p-24', className)}>
       <Heading as="h2" size="md" className="text-balance sm:px-6 sm:text-center">
         Everything HTTP
       </Heading>
@@ -214,7 +145,7 @@ function EverythingHTTPSection({ className }: { className?: string }) {
         <InfoCard
           as="li"
           heading="Fully audited"
-          icon={<Image src={checkBadge} alt="" />}
+          icon={<Image src={checkIcon} alt="" />}
           className="flex-1 rounded-2xl md:rounded-3xl"
         >
           Meets rigorous standards as confirmed by comprehensive{' '}
@@ -229,7 +160,7 @@ function EverythingHTTPSection({ className }: { className?: string }) {
         <InfoCard
           as="li"
           heading="Subscriptions"
-          icon={<Image src={puzzleBadge} alt="" />}
+          icon={<Image src={puzzleIcon} alt="" />}
           className="flex-1 basis-full rounded-2xl md:basis-0 md:rounded-3xl"
         >
           Supports real-time communications with built-in GraphQL{' '}
@@ -241,7 +172,7 @@ function EverythingHTTPSection({ className }: { className?: string }) {
         <InfoCard
           as="li"
           heading="File Uploads"
-          icon={<Image src={arrowUpBade} alt="" />}
+          icon={<Image src={arrowUpIcon} alt="" />}
           className="flex-1 basis-full rounded-2xl md:rounded-3xl lg:basis-0"
         >
           Facilitates file uploads directly through GraphQL using{' '}

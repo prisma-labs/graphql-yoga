@@ -5,7 +5,7 @@ import ComparisonTable from '../comparison-table.mdx';
 
 export const ReachZenQuickerWithYoga: FC<ComponentProps<'section'>> = ({ className, ...rest }) => {
   return (
-    <section className={cn('py-6 md:py-[120px]', className)} {...rest}>
+    <section className={cn('py-6 md:pt-[120px] md:pb-12 xl:px-24', className)} {...rest}>
       <Heading as="h2" size="md" className="text-balance sm:text-center px-4 md:px-6">
         Using Apollo Server? Reach zen quicker with Yoga.
       </Heading>
@@ -25,20 +25,18 @@ export const ReachZenQuickerWithYoga: FC<ComponentProps<'section'>> = ({ classNa
 
         <ComparisonTable
           components={{
-            table(props: any) {
-              return <Table className="grow" {...props} />;
+            table(props: React.HTMLAttributes<HTMLTableElement>) {
+              return (
+                <Table
+                  scheme="neutral"
+                  className="grow [&_tbody_tr:last-child]:[--highlight:initial] [&_a]:text-green-1000 [&_a]:font-medium whitespace-pre [&_td]:py-6"
+                  {...props}
+                />
+              );
             },
-            tr(props: any) {
-              const content = props.children[0].props.children.props?.children;
-              const isHighlight = content?.includes('Response Cache');
-              return <Table.Row highlight={isHighlight} {...props} />;
-            },
-            td(props: any) {
-              const content = props.children.props?.children;
-              const isHighlight = content?.includes('Response Cache');
-              return <Table.Cell className={isHighlight ? '!bg-green-100' : ''} {...props} />;
-            },
-            th(props: any) {
+            tr: Table.Row,
+            td: Table.Cell,
+            th(props: React.HTMLAttributes<HTMLTableCellElement>) {
               return <Table.Header className="sm:w-1/4 whitespace-pre" {...props} />;
             },
           }}

@@ -10,10 +10,10 @@ import {
   MarqueeRows,
   YogaIcon,
 } from '@theguild/components';
-import apolloBadge from './icons/apollo-badge.svg';
-import safeLineBadge from './icons/safe-line-badge.svg';
-import serverLineBadge from './icons/server-line-badge.svg';
-import timerLineBadge from './icons/timer-line-badge.svg';
+import apolloIcon from './icons/apollo-icon.svg';
+import safeLineIcon from './icons/safe-line-icon.svg';
+import serverLineIcon from './icons/server-line-icon.svg';
+import timerLineIcon from './icons/timer-line-icon.svg';
 
 export const TrulyExtendableSection: FC<ComponentProps<'section'>> = ({ className, ...props }) => {
   return (
@@ -37,14 +37,14 @@ export const TrulyExtendableSection: FC<ComponentProps<'section'>> = ({ classNam
           <div className="flex gap-2 sm:grid sm:grid-cols-2 sm:gap-6">
             <InfoCardLink
               heading="Apollo Federation"
-              icon={<Image src={apolloBadge} alt="" />}
+              icon={<Image src={apolloIcon} alt="" />}
               href="/docs/features/apollo-federation"
             >
               Fully supports Apollo Federation for managing complex supergraphs and subgraphs.
             </InfoCardLink>
             <InfoCardLink
               heading="Persisted operations"
-              icon={<Image src={safeLineBadge} alt="" />}
+              icon={<Image src={safeLineIcon} alt="" />}
               href="/features/persisted-operations"
             >
               Mitigates the risk of arbitrary GraphQL operations with robust persistence
@@ -52,14 +52,14 @@ export const TrulyExtendableSection: FC<ComponentProps<'section'>> = ({ classNam
             </InfoCardLink>
             <InfoCardLink
               heading="Response caching"
-              icon={<Image src={serverLineBadge} alt="" />}
+              icon={<Image src={serverLineIcon} alt="" />}
               href="/docs/features/response-caching"
             >
               Optimizes server performance by caching responses, significantly reducing server load.
             </InfoCardLink>
             <InfoCardLink
               heading="Rate limiting"
-              icon={<Image src={timerLineBadge} alt="" />}
+              icon={<Image src={timerLineIcon} alt="" />}
               href="https://the-guild.dev/graphql/envelop/plugins/use-rate-limiter"
             >
               Prevents denial of service attacks with advanced rate limiting.
