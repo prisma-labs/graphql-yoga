@@ -15,6 +15,7 @@
 ![bundlephobia minified+zipped size](https://badgen.net/bundlephobia/minzip/graphql-yoga)
 ![bundlephobia treeshaking](https://badgen.net/bundlephobia/tree-shaking/graphql-yoga)
 ![license](https://badgen.net/github/license/dotansimha/graphql-yoga)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20GraphQL%20Yoga%20Guru-006BFF)](https://gurubase.io/g/graphql-yoga)
 
 </div>
 
