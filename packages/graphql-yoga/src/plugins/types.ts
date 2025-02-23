@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Plugin as EnvelopPlugin,
+  Tracer as EnvelopTracer,
   OnExecuteHook,
   OnSubscribeHook,
   PromiseOrValue,
@@ -8,7 +9,11 @@ import {
   SetSchemaFn,
 } from '@envelop/core';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { ServerAdapterPlugin, type ServerAdapterInitialContext } from '@whatwg-node/server';
+import {
+  ServerAdapterPlugin,
+  type ServerAdapterInitialContext,
+  type Tracer as ServerAdapterTracer,
+} from '@whatwg-node/server';
 import { YogaServer } from '../server.js';
 import {
   FetchAPI,
@@ -41,6 +46,11 @@ export type Plugin<
      */
     onPluginInit?: OnPluginInitHook<YogaInitialContext & PluginContext & TUserContext>;
   } & {
+    /**
+     * A Tracer instance that will wrap each phases of the request pipeline.
+     * This should be used primarly as an observability tool (for monitoring, tracing, etc...).
+     */
+    tracer?: Tracer<YogaInitialContext & PluginContext & TUserContext>;
     /**
      * This hook is invoked at Yoga Server initialization, before it starts.
      * Here you can setup long running resources (like monitoring or caching clients)
@@ -79,6 +89,16 @@ export type Plugin<
      * should be used for sending the result over the wire.
      */
     onResultProcess?: OnResultProcess<TServerContext>;
+  };
+
+export type Tracer<TContext extends Record<string, any>> = EnvelopTracer<TContext> &
+  ServerAdapterTracer & {
+    operation?: (
+      payload: { request: Request; context: TContext },
+      wrapped: () => PromiseOrValue<void>,
+    ) => PromiseOrValue<void>;
+    requestParse?: (payload: { request: Request }, wrapped: () => void) => void;
+    resultProcess?: (payload: { request: Request }, wrapped: () => void) => void;
   };
 
 export type OnYogaInitHook<TServerContext extends Record<string, any>> = (

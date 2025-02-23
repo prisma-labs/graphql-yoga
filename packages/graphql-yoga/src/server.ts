@@ -3,6 +3,7 @@ import { ExecutionResult, parse, specifiedRules, validate } from 'graphql';
 import {
   envelop,
   GetEnvelopedFn,
+  getTraced,
   isAsyncIterable,
   PromiseOrValue,
   useEngine,
@@ -53,6 +54,7 @@ import {
   Plugin,
   RequestParser,
   ResultProcessorInput,
+  Tracer,
 } from './plugins/types.js';
 import { GraphiQLOptions, GraphiQLOptionsOrFactory, useGraphiQL } from './plugins/use-graphiql.js';
 import { useHealthCheck } from './plugins/use-health-check.js';
@@ -216,6 +218,7 @@ export class YogaServer<
   protected plugins: Array<
     Plugin<TUserContext & TServerContext & YogaInitialContext, TServerContext, TUserContext>
   >;
+  private tracer: Tracer<TUserContext & TServerContext & YogaInitialContext> | undefined;
   private onRequestParseHooks: OnRequestParseHook<TServerContext>[];
   private onParamsHooks: OnParamsHook<TServerContext>[];
   private onExecutionResultHooks: OnExecutionResultHook<TServerContext>[];
@@ -513,7 +516,7 @@ export class YogaServer<
     return result;
   };
 
-  async getResultForParams(
+  getResultForParams = async (
     {
       params,
       request,
@@ -522,7 +525,7 @@ export class YogaServer<
       request: Request;
     },
     context: TServerContext,
-  ) {
+  ) => {
     let result: ExecutionResult | AsyncIterable<ExecutionResult> | undefined;
     let paramsHandler = this.handleParams;
 
@@ -563,12 +566,20 @@ export class YogaServer<
     }
 
     return result;
-  }
+  };
 
-  handle: ServerAdapterRequestHandler<TServerContext> = async (
+  parseRequest = async (
     request: Request,
     serverContext: TServerContext & ServerAdapterInitialContext,
-  ) => {
+  ): Promise<
+    | {
+        requestParserResult:
+          | GraphQLParams<Record<string, any>, Record<string, any>>
+          | GraphQLParams<Record<string, any>, Record<string, any>>[];
+        response?: never;
+      }
+    | { requestParserResult?: never; response: Response }
+  > => {
     let url = new Proxy({} as URL, {
       get: (_target, prop, _receiver) => {
         url = new this.fetchAPI.URL(request.url, 'http://localhost');
@@ -596,10 +607,12 @@ export class YogaServer<
     this.logger.debug(`Parsing request to extract GraphQL parameters`);
 
     if (!requestParser) {
-      return new this.fetchAPI.Response(null, {
-        status: 415,
-        statusText: 'Unsupported Media Type',
-      });
+      return {
+        response: new this.fetchAPI.Response(null, {
+          status: 415,
+          statusText: 'Unsupported Media Type',
+        }),
+      };
     }
 
     let requestParserResult = await requestParser(request);
@@ -613,10 +626,36 @@ export class YogaServer<
       });
     }
 
+    return { requestParserResult };
+  };
+
+  handle: ServerAdapterRequestHandler<TServerContext> = async (
+    request: Request,
+    serverContext: TServerContext & ServerAdapterInitialContext,
+  ) => {
+    const traced = this.tracer && getTraced({ request });
+
+    const parseRequest = this.tracer?.requestParse
+      ? traced!.asyncFn(this.tracer?.requestParse, this.parseRequest)
+      : this.parseRequest;
+    const { response, requestParserResult } = await parseRequest(request, serverContext);
+
+    if (response) {
+      return response;
+    }
+
+    const getResultForParams = this.tracer?.operation
+      ? (payload: { request: Request; params: GraphQLParams }, context: any) => {
+          const traced = getTraced({ request, context });
+          const tracedHandler = traced.asyncFn(this.tracer?.operation, this.getResultForParams);
+          return tracedHandler(payload, context);
+        }
+      : this.getResultForParams;
+
     const result = (await (Array.isArray(requestParserResult)
       ? Promise.all(
           requestParserResult.map(params =>
-            this.getResultForParams(
+            getResultForParams(
               {
                 params,
                 request,
@@ -625,7 +664,7 @@ export class YogaServer<
             ),
           ),
         )
-      : this.getResultForParams(
+      : getResultForParams(
           {
             params: requestParserResult,
             request,
@@ -633,7 +672,11 @@ export class YogaServer<
           serverContext,
         ))) as ResultProcessorInput;
 
-    return processResult({
+    const tracedProcessResult = this.tracer?.resultProcess
+      ? traced!.asyncFn(this.tracer.resultProcess, processResult<TServerContext>)
+      : processResult<TServerContext>;
+
+    return tracedProcessResult({
       request,
       result,
       fetchAPI: this.fetchAPI,
